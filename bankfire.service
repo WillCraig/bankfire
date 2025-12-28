@@ -1,0 +1,13 @@
+[Unit]
+Description=Bankfire - Steam download shutdown helper
+Documentation=https://github.com/willcraig/bankfire
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/bankfire
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
