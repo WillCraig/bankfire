@@ -1,0 +1,11 @@
+# Built binary
+bankfire
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
