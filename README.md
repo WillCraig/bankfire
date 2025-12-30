@@ -1,36 +1,21 @@
-# Bankfire 🔥
+# bankfire
 
-_Let it finish and die._
+Auto-shutdown your Linux machine when Steam finishes downloading.
 
-A vigilant night watchman for your Linux machine. Bankfire tends the fire—monitoring Steam's download boilers until the pressure drops and the work is done—then banks the coals and shuts down for the night.
+## What it does
 
----
+Bankfire monitors Steam downloads and shuts down your computer when they're done. Useful for overnight downloads or when you want to leave your PC running but not all night.
 
-## The Trade
+## Install
 
-Like a stoker watching steam pressure gauges through the night shift, Bankfire monitors Steam's download activity. When the boilers go quiet and the work is complete, it powers down the machine.
-
-Perfect for:
-
-- Queuing overnight game updates before bed 🌙
-- Large downloads that finish while you're away
-- Keeping your electric bill reasonable
-
----
-
-## Bringing It Aboard
-
-**Option 1: Direct installation (recommended)**
+**Option 1: Using go install**
 
 ```bash
 go install github.com/willcraig/bankfire@latest
-
-# Bankfire lands in ~/go/bin/bankfire
-# Add to your PATH or move to system location:
 sudo cp ~/go/bin/bankfire /usr/local/bin/
 ```
 
-**Option 2: Build from the foundry ⚒️**
+**Option 2: Build from source**
 
 ```bash
 git clone https://github.com/willcraig/bankfire.git
@@ -39,93 +24,64 @@ go build -o bankfire .
 sudo mv bankfire /usr/local/bin/
 ```
 
----
-
-## Operating the Machinery
+## Usage
 
 ```bash
-bankfire              # Monitor and shutdown when the fire dies
-bankfire -dry-run     # Test the gauges without actually banking it
-bankfire -version     # Check the manufacturer's mark
+bankfire              # Run and shutdown when downloads finish
+bankfire -dry-run     # Test without actually shutting down
+bankfire -version     # Show version
 ```
 
----
+## Options
 
-## Valve Controls ⚙️
+- `-quiet 1m` - How long Steam must be idle before shutdown (default: 60s)
+- `-check 5s` - How often to check for activity (default: 5s)
+- `-steam-path /path` - Steam install path (auto-detects by default)
+- `-shutdown "cmd"` - Custom shutdown command (default: systemctl poweroff --no-wall)
+- `-dry-run` - Test mode, won't actually shutdown
+- `-version` - Print version
 
-Fine-tune Bankfire's behavior with these flags:
+## How it works
 
-- **`-quiet 1m`** — How long Steam must idle before we bank the fire (default: 60s)
-- **`-check 5s`** — How often to check the pressure gauges (default: 5s)
-- **`-steam-path /path`** — Override Steam installation path (auto-detects native and Flatpak)
-- **`-shutdown "systemctl poweroff --no-wall"`** — The command to execute when shutting down
-- **`-dry-run`** — Run through the motions without actually powering off
-- **`-version`** — Print version and exit
+Bankfire watches three things:
+1. Steam's `logs/content_log.txt` for download logs
+2. The `steamapps/downloading` and `steamapps/temp` folders
+3. All Steam libraries in `steamapps/libraryfolders.vdf`
 
----
+When nothing's changed for the quiet period, it shuts down.
 
-## Under the Hood 🚂
+## Permissions
 
-Bankfire keeps watch by monitoring three pressure points:
-
-1. **Tailing the logbook** — Reads `logs/content_log.txt` for download activity
-2. **Checking the coal bunkers** 🪨 — Monitors `steamapps/downloading` and `steamapps/temp` for active work
-3. **Inspecting all engine rooms** — Scans every Steam library listed in `steamapps/libraryfolders.vdf`
-
-Once Steam has been quiet for your configured `-quiet` window, Bankfire executes the shutdown command and calls it a night.
-
----
-
-## Permissions & Authority
-
-Bankfire needs proper credentials to shut down your machine:
+You need sudo for shutdown. Either run with sudo or set up passwordless shutdown:
 
 ```bash
-# Option 1: Grant temporary authority
+# Run with sudo
 sudo bankfire
 
-# Option 2: Issue standing orders (passwordless shutdown)
-# Add this to /etc/sudoers.d/bankfire:
+# Or configure passwordless shutdown
+# Add to /etc/sudoers.d/bankfire:
 yourusername ALL=(ALL) NOPASSWD: /usr/bin/systemctl poweroff
 ```
 
-Then run without sudo:
+## Run as a service
+
+To run bankfire automatically:
+
+**1. Install the service file**
 
 ```bash
-bankfire
-```
-
----
-
-## Running the Night Shift (Systemd Service) 💤
-
-To keep Bankfire on permanent watch as a systemd service:
-
-**1. Fetch the service manifest:**
-
-```bash
-# If you cloned the repo, it's already there
-# If you used go install, download it:
 wget https://raw.githubusercontent.com/willcraig/bankfire/main/bankfire.service
-
 mkdir -p ~/.config/systemd/user
 mv bankfire.service ~/.config/systemd/user/
 ```
 
-**2. Update the service file path:**
+**2. Edit the ExecStart path**
 
-```bash
-# Edit ~/.config/systemd/user/bankfire.service
-# Change ExecStart to match your installation:
+Edit `~/.config/systemd/user/bankfire.service` and set the correct path:
+- If using go install: `ExecStart=%h/go/bin/bankfire`
+- If in /usr/local/bin: `ExecStart=/usr/local/bin/bankfire`
 
-# If you used go install:
-ExecStart=%h/go/bin/bankfire
-
-# If you moved it to /usr/local/bin:
-ExecStart=/usr/local/bin/bankfire
-```
-
-**3. Enable and start the watchman:**
+**3. Enable and start**
 
 ```bash
 systemctl --user daemon-reload
@@ -133,23 +89,15 @@ systemctl --user enable bankfire
 systemctl --user start bankfire
 ```
 
-**4. Check the logbook:**
+**4. Check status**
 
 ```bash
 systemctl --user status bankfire
 journalctl --user -u bankfire -f
 ```
 
-**Note:** For shutdown commands to work from a user service, you'll need passwordless sudo configured (see Permissions section above).
-
----
+Note: You'll need passwordless sudo configured for this to work.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
-
-Built with Go. Powered by patience. ⚡
-
----
-
-**Pro tip:** Run with `-dry-run` first to watch Bankfire's monitoring without risking an unexpected shutdown. Once you trust the watchman, let it work through the night.
+MIT
