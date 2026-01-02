@@ -49,6 +49,9 @@ func main() {
 		fmt.Println("bankfire", version)
 		return
 	}
+	if warning := warningForEuid(os.Geteuid()); warning != "" {
+		log.Println(warning)
+	}
 
 	root, err := resolveSteamRoot(*steamPath)
 	if err != nil {
@@ -353,4 +356,11 @@ func dirHasEntries(path string) (bool, error) {
 	}
 
 	return len(entries) > 0, nil
+}
+
+func warningForEuid(euid int) string {
+	if euid == 0 {
+		return ""
+	}
+	return "Warning: running without sudo; shutdown may fail unless passwordless shutdown is configured"
 }
