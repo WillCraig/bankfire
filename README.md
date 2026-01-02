@@ -2,15 +2,15 @@
 
 _Let it finish and die._
 
-A vigilant night watchman for your Linux machine. Bankfire tends the fire—monitoring Steam's download boilers until the pressure drops and the work is done—then banks the coals and shuts down for the night.
+Bankfire is a small Linux utility that watches Steam downloads and shuts the machine down once everything is done. It is handy if you queue up big updates before bed and do not want the PC running all night.
 
 ---
 
-## The Trade
+## What It Does
 
-Like a stoker watching steam pressure gauges through the night shift, Bankfire monitors Steam's download activity. When the boilers go quiet and the work is complete, it powers down the machine.
+Bankfire monitors Steam's download activity. When downloads stop and stay quiet for a bit, it powers down the machine.
 
-Perfect for:
+Good for:
 
 - Queuing overnight game updates before bed 🌙
 - Large downloads that finish while you're away
@@ -18,7 +18,7 @@ Perfect for:
 
 ---
 
-## Bringing It Aboard
+## Install
 
 **Option 1: Direct installation (recommended)**
 
@@ -30,7 +30,7 @@ go install github.com/willcraig/bankfire@latest
 sudo cp ~/go/bin/bankfire /usr/local/bin/
 ```
 
-**Option 2: Build from the foundry ⚒️**
+**Option 2: Build from source ⚒️**
 
 ```bash
 git clone https://github.com/willcraig/bankfire.git
@@ -41,38 +41,38 @@ sudo mv bankfire /usr/local/bin/
 
 ---
 
-## Operating the Machinery
+## Usage
 
 ```bash
-bankfire              # Monitor and shutdown when the fire dies
-bankfire -dry-run     # Test the gauges without actually banking it
-bankfire -version     # Check the manufacturer's mark
+bankfire              # Monitor and shut down when downloads finish
+bankfire -dry-run     # Run without shutting down
+bankfire -version     # Print version
 ```
 
 ---
 
-## Valve Controls ⚙️
+## Options ⚙️
 
-Fine-tune Bankfire's behavior with these flags:
+Tweak behavior with these flags:
 
-- **`-quiet 1m`** — How long Steam must idle before we bank the fire (default: 60s)
-- **`-check 5s`** — How often to check the pressure gauges (default: 5s)
+- **`-quiet 1m`** — How long Steam must idle before shutdown (default: 60s)
+- **`-check 5s`** — How often to check activity (default: 5s)
 - **`-steam-path /path`** — Override Steam installation path (auto-detects native and Flatpak)
 - **`-shutdown "systemctl poweroff --no-wall"`** — The command to execute when shutting down
-- **`-dry-run`** — Run through the motions without actually powering off
+- **`-dry-run`** — Run without actually powering off
 - **`-version`** — Print version and exit
 
 ---
 
-## Under the Hood 🚂
+## How It Works 🚂
 
-Bankfire keeps watch by monitoring three pressure points:
+Bankfire watches three places:
 
-1. **Tailing the logbook** — Reads `logs/content_log.txt` for download activity
-2. **Checking the coal bunkers** 🪨 — Monitors `steamapps/downloading` and `steamapps/temp` for active work
-3. **Inspecting all engine rooms** — Scans every Steam library listed in `steamapps/libraryfolders.vdf`
+1. **Steam log file** — Reads `logs/content_log.txt` for download activity
+2. **Download folders** 🪨 — Monitors `steamapps/downloading` and `steamapps/temp`
+3. **All libraries** — Scans every Steam library listed in `steamapps/libraryfolders.vdf`
 
-Once Steam has been quiet for your configured `-quiet` window, Bankfire executes the shutdown command and calls it a night.
+Once Steam has been quiet for your configured `-quiet` window, Bankfire runs the shutdown command and exits.
 
 ---
 
@@ -97,7 +97,7 @@ bankfire
 
 ---
 
-## Running the Night Shift (Systemd Service) 💤
+## Run as a Service (Systemd) 💤
 
 To keep Bankfire on permanent watch as a systemd service:
 
@@ -125,7 +125,7 @@ ExecStart=%h/go/bin/bankfire
 ExecStart=/usr/local/bin/bankfire
 ```
 
-**3. Enable and start the watchman:**
+**3. Enable and start the service:**
 
 ```bash
 systemctl --user daemon-reload
@@ -133,7 +133,7 @@ systemctl --user enable bankfire
 systemctl --user start bankfire
 ```
 
-**4. Check the logbook:**
+**4. Check logs:**
 
 ```bash
 systemctl --user status bankfire
@@ -152,4 +152,4 @@ Built with Go. Powered by patience. ⚡
 
 ---
 
-**Pro tip:** Run with `-dry-run` first to watch Bankfire's monitoring without risking an unexpected shutdown. Once you trust the watchman, let it work through the night.
+**Pro tip:** Run with `-dry-run` first to confirm it is detecting activity before you let it shut the machine down.
